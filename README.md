@@ -16,30 +16,52 @@ Production-ready React + Web3 wallet integration using MetaMask, focusing on cor
 
 ```
 src/
-  app/
-    App.tsx
-    main.tsx
-    providers/
-      WalletBootstrap.tsx
-  features/
-    wallet/
-      api/
-        walletApi.ts
-      core/
-        getProvider.ts
-        events.ts
-        sync.ts
-      model/
-        types.ts
-        wallet.store.ts
-      ui/
-        WalletDebugCard.tsx
-        WalletActions.tsx
-  shared/
-    lib/
-      format.ts
-  styles/
-    globals.css
+├─ app/
+│  ├─ App.tsx
+│  ├─ main.tsx
+│  └─ providers/
+│     └─ WalletBootstrap.tsx
+│
+├─ components/
+│  ├─ custom-token/        # Custom ERC-20 balance UI
+│  ├─ header/              # App header (wallet + theme)
+│  ├─ network-info/        # Current network display
+│  ├─ theme-toggle/        # Theme switcher UI
+│  ├─ token-balances/      # USDC / USDT balance cards
+│  ├─ wallet-state/        # Wallet state cards (connected, error, etc.)
+│  └─ ui/                  # Reusable UI primitives (Button, Card, Badge...)
+│
+├─ config/
+│  ├─ chains.ts            # Supported chains configuration
+│  └─ tokens.ts            # Token metadata (USDC, USDT)
+│
+├─ features/
+│  ├─ wallet/              # Wallet domain logic (provider, events, sync)
+│  └─ tokens/              # Token-related core logic (ERC-20)
+│
+├─ hooks/
+│  ├─ useTheme.ts
+│  ├─ useSoftRefresh.ts
+│  └─ index.ts
+│
+├─ shared/
+│  └─ ui/
+│     └─ CopyableText.tsx
+│
+├─ store/
+│  ├─ wallet.store.ts
+│  ├─ tokenBalances.store.ts
+│  ├─ customTokenBalance.store.ts
+│  ├─ types.ts
+│  └─ index.ts
+│
+├─ utils/
+│  ├─ format.ts
+│  ├─ validation.ts
+│  └─ index.ts
+│
+└─ styles/
+   └─ globals.css
 ```
 
 ## Features
