@@ -52,11 +52,12 @@ export function CopyableText({ text, displayText, label, className }: CopyableTe
 
   return (
     <Tooltip content={tooltipContent}>
-      <div
+      <button
+        type="button"
         className={cn(
-          'flex items-center gap-2 px-2 py-1 rounded-md transition-all cursor-pointer',
+          'flex items-center gap-2 px-2 py-1 rounded-md transition-all cursor-pointer w-full text-left',
           'hover:bg-slate-800/50 hover:border-slate-700/50',
-          'focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:outline-none',
+          'focus:ring-2 focus:ring-blue-500/50 focus:outline-none',
           isHovered && 'bg-slate-800/30',
           className
         )}
@@ -64,21 +65,10 @@ export function CopyableText({ text, displayText, label, className }: CopyableTe
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleCopy}
         onKeyDown={handleKeyDown}
-        role="button"
-        tabIndex={0}
         aria-label={tooltipContent}
       >
-        <span className="text-sm font-mono text-slate-800 dark:text-slate-300 select-text min-w-0 truncate">{shownText}</span>
-        <button
-          className="p-1 hover:bg-slate-700/50 rounded transition-colors select-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 shrink-0"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleCopy(e);
-          }}
-          onKeyDown={handleKeyDown}
-          aria-label={tooltipContent}
-          tabIndex={-1}
-        >
+        <span className="text-sm font-mono text-slate-800 dark:text-slate-300 select-text min-w-0 truncate flex-1">{shownText}</span>
+        <span className="p-1 hover:bg-slate-700/50 rounded transition-colors select-none shrink-0 pointer-events-none">
           <svg
             className="w-[18px] h-[18px] text-slate-400 hover:text-slate-200 transition-colors"
             fill="none"
@@ -93,8 +83,8 @@ export function CopyableText({ text, displayText, label, className }: CopyableTe
               d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
             />
           </svg>
-        </button>
-      </div>
+        </span>
+      </button>
     </Tooltip>
   );
 }

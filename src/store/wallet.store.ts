@@ -25,7 +25,7 @@ interface WalletStore extends WalletState {
  * - Tránh stale UI: UI luôn reflect đúng state hiện tại
  * - Epoch tracking: đảm bảo chỉ apply updates mới nhất (tránh race conditions)
  */
-export const useWalletStore = create<WalletStore>((set: any, get: any) => ({
+export const useWalletStore = create<WalletStore>((set, get) => ({
   // Initial state
   installed: false,
   status: 'idle',
@@ -76,11 +76,16 @@ export const useWalletStore = create<WalletStore>((set: any, get: any) => ({
         chainIdDec: state.chainIdDec,
         lastError: null,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initialize wallet';
       set({
         status: 'error',
-        lastError: error?.message || 'Failed to initialize wallet',
+        lastError: errorMessage,
       });
+      // Log error for debugging (non-blocking)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[Wallet] Init error:', error);
+      }
     }
 
     // Gắn event listeners (chỉ một lần nhờ guard ở trên)
@@ -203,9 +208,10 @@ export const useWalletStore = create<WalletStore>((set: any, get: any) => ({
 
       // Toast success
       toast.success('Wallet connected successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Xử lý user rejection: error.code === 4001 là người dùng từ chối kết nối
-      if (error.code === 4001 || error.message?.toLowerCase().includes('user rejected')) {
+      const errorObj = error as { code?: number; message?: string };
+      if (errorObj.code === 4001 || errorObj.message?.toLowerCase().includes('user rejected')) {
         set({
           status: 'idle',
           lastError: 'Connection request was rejected by user',
@@ -214,12 +220,17 @@ export const useWalletStore = create<WalletStore>((set: any, get: any) => ({
         toast.warning('Connection request was rejected');
       } else {
         // Technical error
+        const errorMessage = errorObj.message || 'Failed to connect wallet';
         set({
           status: 'error',
-          lastError: error?.message || 'Failed to connect wallet',
+          lastError: errorMessage,
         });
         // Toast error cho technical error
         toast.error('Failed to connect wallet');
+        // Log error for debugging (non-blocking)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[Wallet] Connect error:', error);
+        }
       }
     }
   },
@@ -237,7 +248,10 @@ export const useWalletStore = create<WalletStore>((set: any, get: any) => ({
 
       // Check if state changed
       const chainChanged = state.chainIdHex !== current.chainIdHex;
-      const accountsChanged = JSON.stringify(state.accounts) !== JSON.stringify(current.accounts);
+      // Shallow comparison for arrays (more efficient than JSON.stringify)
+      const accountsChanged = 
+        state.accounts.length !== current.accounts.length ||
+        state.accounts.some((acc, idx) => acc !== current.accounts[idx]);
 
       if (chainChanged || accountsChanged) {
         set({
@@ -249,8 +263,11 @@ export const useWalletStore = create<WalletStore>((set: any, get: any) => ({
           epoch: current.epoch + 1,
         });
       }
-    } catch (error: any) {
-      // Error handled silently
+    } catch (error: unknown) {
+      // Log error for debugging (non-blocking, sync is best-effort)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[Wallet] Sync error:', error);
+      }
     }
   },
 

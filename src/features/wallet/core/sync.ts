@@ -28,13 +28,19 @@ export async function syncWalletState(
 
     // Chỉ update nếu có thay đổi (tránh unnecessary re-renders)
     const chainChanged = newState.chainIdHex !== currentState.chainIdHex;
-    const accountsChanged = JSON.stringify(newState.accounts) !== JSON.stringify(currentState.accounts);
+    // Shallow comparison for arrays (more efficient than JSON.stringify)
+    const accountsChanged = 
+      newState.accounts.length !== currentState.accounts.length ||
+      newState.accounts.some((acc, idx) => acc !== currentState.accounts[idx]);
 
     if (chainChanged || accountsChanged) {
       onStateChanged(newState);
     }
-  } catch (error) {
-    // Error handled silently
+  } catch (error: unknown) {
+    // Log error for debugging (non-blocking, sync is best-effort)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[Wallet] Sync error:', error);
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useTokenBalancesStore } from '@/store/tokenBalances.store';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
@@ -11,6 +11,12 @@ interface TokenBalancesListProps {
   chainId: number | null;
   epoch: number;
 }
+
+// Static tokens array - moved outside component to prevent recreation on each render
+const TOKENS = [
+  { key: 'USDC' as const, name: 'USD Coin', icon: '💵' },
+  { key: 'USDT' as const, name: 'Tether USD', icon: '💵' },
+] as const;
 
 /**
  * Token Balances List - Production-grade token list UI
@@ -34,23 +40,19 @@ export function TokenBalancesList({ account, chainId, epoch }: TokenBalancesList
   // - Khi user switch account/network trong MetaMask, balances phải update ngay
   // - useEffect với dependencies [account, chainId, epoch] sẽ trigger fetch tự động
   // - Không toast ở đây để tránh spam (chỉ toast khi manual refresh)
+  // Note: fetchBalances từ Zustand store is stable, but we include it for completeness
   useEffect(() => {
     if (account && chainId) {
       fetchBalances({ account, chainId, epoch, isManualRefresh: false });
     }
   }, [account, chainId, epoch, fetchBalances]);
 
-  // Manual refresh button - toast để user biết action đã được trigger
-  const handleRefresh = () => {
+  // Manual refresh button - memoized to prevent unnecessary re-renders
+  const handleRefresh = useCallback(() => {
     if (!account || !chainId) return;
     fetchBalances({ account, chainId, epoch, isManualRefresh: true });
     toast.info('Refreshing balances...');
-  };
-
-  const tokens = [
-    { key: 'USDC' as const, name: 'USD Coin', icon: '💵' },
-    { key: 'USDT' as const, name: 'Tether USD', icon: '💵' },
-  ];
+  }, [account, chainId, epoch, fetchBalances]);
 
   return (
     <Card>
@@ -80,7 +82,7 @@ export function TokenBalancesList({ account, chainId, epoch }: TokenBalancesList
           <EmptyState />
         ) : (
           <div className="space-y-3">
-            {tokens.map((token) => {
+            {TOKENS.map((token) => {
               const balance = balances[token.key];
               return (
                 <TokenRow

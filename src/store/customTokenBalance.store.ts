@@ -119,12 +119,18 @@ export const useCustomTokenBalanceStore = create<CustomTokenBalanceStore>((set, 
           toast.success(`Balance: ${result.formatted}`);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle different error types
       let errorMessage = 'Failed to fetch token balance';
 
       // Check error message for common cases
-      const errorMsg = error?.message?.toLowerCase() || '';
+      const errorObj = error instanceof Error ? error : { message: '' };
+      const errorMsg = errorObj.message?.toLowerCase() || '';
+      
+      // Log error for debugging (non-blocking)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[CustomTokenBalance] Check balance error:', error);
+      }
       
       if (errorMsg.includes('execution reverted') || errorMsg.includes('invalid opcode')) {
         // Contract không phải ERC-20 hoặc không có hàm balanceOf/decimals
@@ -135,9 +141,9 @@ export const useCustomTokenBalanceStore = create<CustomTokenBalanceStore>((set, 
       } else if (errorMsg.includes('not deployed') || errorMsg.includes('does not exist')) {
         // Contract không tồn tại trên network hiện tại
         errorMessage = 'Contract not found on current network';
-      } else if (error?.message) {
+      } else if (errorObj.message) {
         // Use specific error message if available
-        errorMessage = error.message;
+        errorMessage = errorObj.message;
       }
 
       // Check if still current request (stale protection với epoch)

@@ -131,12 +131,17 @@ export const useTokenBalancesStore = create<TokenBalancesStore>((set, get) => ({
               decimals: result.decimals,
             },
           };
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Technical error fetching balance
           
           // Check if still current request (stale protection với epoch)
           if (get().fetchEpoch !== currentEpoch) {
             return null;
+          }
+
+          // Log error for debugging (non-blocking)
+          if (process.env.NODE_ENV === 'development') {
+            console.error(`[TokenBalances] Error fetching ${tokenKey}:`, error);
           }
 
           return {
@@ -192,13 +197,18 @@ export const useTokenBalancesStore = create<TokenBalancesStore>((set, get) => ({
       if (isManualRefresh) {
         toast.success('Balances updated');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Final stale check với epoch
       if (get().fetchEpoch !== currentEpoch) {
         return;
       }
 
-      const errorMessage = error?.message || 'Failed to fetch token balances';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch token balances';
+      
+      // Log error for debugging (non-blocking)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[TokenBalances] Fetch error:', error);
+      }
       
       // Only toast on genuine technical errors (not 'na' status) và manual refresh
       if (isManualRefresh) {

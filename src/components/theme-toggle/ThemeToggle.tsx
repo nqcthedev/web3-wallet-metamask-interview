@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useTheme, type Theme } from '@/hooks';
 import { ThemeIcon } from './ThemeIcon';
 import { ThemeMenu } from './ThemeMenu';
+import { useClickOutside } from '../header/useClickOutside';
 
 /**
  * Theme Toggle Component - Compact dropdown for theme selection
@@ -17,21 +18,12 @@ export function ThemeToggle() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
+  // Close dropdown when clicking outside - use shared hook
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isOpen]);
+  useClickOutside(dropdownRef, handleClose, isOpen);
 
   const themes: { value: Theme; label: string }[] = [
     { value: 'light', label: 'Light' },

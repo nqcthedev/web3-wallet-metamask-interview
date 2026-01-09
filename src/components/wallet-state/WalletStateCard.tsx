@@ -1,3 +1,4 @@
+import { useMemo, useCallback } from 'react';
 import { getChainById, isSupportedChain } from '@/config/chains';
 import { useWalletStore } from '@/store';
 import { WalletState_ConnectedCard } from './WalletState_ConnectedCard';
@@ -29,25 +30,27 @@ export function WalletStateCard() {
     clearError,
   } = useWalletStore();
 
-  // Compute derived values
-  const chain = chainIdDec ? getChainById(chainIdDec) : null;
-  const isSupported = isSupportedChain(chainIdDec);
+  // Compute derived values - memoized to prevent unnecessary recalculations
+  const chain = useMemo(() => (chainIdDec ? getChainById(chainIdDec) : null), [chainIdDec]);
+  const isSupported = useMemo(() => isSupportedChain(chainIdDec), [chainIdDec]);
   const isConnected = status === 'connected';
   const isConnecting = status === 'connecting';
   const hasError = status === 'error';
 
-  // Compute network name for display
-  const networkName = chain
-    ? `${chain.name} ${chain.env === 'mainnet' ? 'Mainnet' : 'Testnet'}`
-    : 'Unknown';
+  // Compute network name for display - memoized
+  const networkName = useMemo(
+    () => (chain ? `${chain.name} ${chain.env === 'mainnet' ? 'Mainnet' : 'Testnet'}` : 'Unknown'),
+    [chain]
+  );
+
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleInstallClick = useCallback(() => {
+    window.open('https://metamask.io/', '_blank');
+  }, []);
 
   // State 1: MetaMask Not Installed
   if (!installed) {
-    return (
-      <WalletState_NotInstalledCard
-        onInstallClick={() => window.open('https://metamask.io/', '_blank')}
-      />
-    );
+    return <WalletState_NotInstalledCard onInstallClick={handleInstallClick} />;
   }
 
   // State 2: Disconnected

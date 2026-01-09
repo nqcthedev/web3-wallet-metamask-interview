@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { CopyableText } from '@/shared/ui/CopyableText';
 import { shortAddress } from '@/utils';
 import { Badge } from '../ui/badge';
@@ -17,8 +18,9 @@ interface TokenRowProps {
 /**
  * Token Row - UI only
  * Displays a single token balance row
+ * Memoized to prevent unnecessary re-renders when parent re-renders
  */
-export function TokenRow({ tokenKey, tokenName, tokenIcon, balance, loading }: TokenRowProps) {
+export const TokenRow = memo(function TokenRow({ tokenKey, tokenName, tokenIcon, balance, loading }: TokenRowProps) {
   const hasValue = balance.value !== null && balance.value !== undefined;
   const displayValue = hasValue && balance.value !== '—' ? balance.value : '—';
 
@@ -81,4 +83,4 @@ export function TokenRow({ tokenKey, tokenName, tokenIcon, balance, loading }: T
       </div>
     </div>
   );
-}
+});

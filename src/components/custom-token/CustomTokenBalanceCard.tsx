@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useWalletStore } from '@/store';
@@ -24,8 +24,14 @@ export function CustomTokenBalanceCard() {
     reset,
   } = useCustomTokenBalanceStore();
 
+  // Sync local input state with store (single source of truth)
   const [inputValue, setInputValue] = useState(contractAddress);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Sync inputValue with store when store changes (e.g., reset)
+  useEffect(() => {
+    setInputValue(contractAddress);
+  }, [contractAddress]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

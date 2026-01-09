@@ -40,6 +40,7 @@ export async function getErc20Balance(
   account: string
 ): Promise<Erc20BalanceResult> {
   // Create contract instance
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const contract = new web3.eth.Contract(ERC20_ABI as any, tokenAddress);
 
   // Fetch balance and decimals in parallel
